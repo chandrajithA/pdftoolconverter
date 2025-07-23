@@ -1,0 +1,117 @@
+{% comment %} <!DOCTYPE html>
+<html>
+<head>
+    <title>Word to PDF Converter</title>
+</head>
+<body>
+    <h1>Word to PDF Converter</h1>
+    <h1>Upload .docx to convert to PDF</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  <input type="file" name="word_file" accept=".docx" required>
+  <button type="submit">Convert to PDF</button>
+</form>
+
+{% if error %}
+  <p style="color:red;">Error: {{ error }}</p>
+{% endif %}
+
+{% if pdf_url %}
+  <p>✅ Converted successfully!</p>
+  <a href="{{ pdf_url }}" download>Download PDF</a>
+{% endif %}
+
+</body>
+</html> {% endcomment %}
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Word to PDF Converter</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex items-center justify-center">
+
+  <div class="bg-white p-10 rounded-xl shadow-xl w-full max-w-2xl text-center">
+    <h1 class="text-2xl font-bold mb-6">Word to PDF Converter</h1>
+
+    <form id="upload-form" method="POST" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+
+      <div id="drop-zone"
+           class="border-2 border-dashed border-gray-400 p-10 rounded-lg bg-gray-50 cursor-pointer">
+        <p class="text-gray-600">Drag & drop .doc or .docx files here or click to select</p>
+        <input id="file-input" name="word_files" type="file" accept=".doc,.docx" multiple hidden>
+      </div>
+
+      <ul id="file-list" class="text-left text-sm text-gray-700 space-y-1"></ul>
+
+      <button type="submit"
+              class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+              id="convert-btn" disabled>
+        Convert to PDF
+      </button>
+    </form>
+
+    {% if pdf_urls %}
+      <div class="mt-6 text-left">
+        <h2 class="font-semibold">Download PDFs:</h2>
+        <ul class="mt-2 space-y-1">
+          {% for url in pdf_urls %}
+            <li><a href="{{ url }}" class="text-blue-600 hover:underline" download>Download PDF {{ forloop.counter }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    {% if error %}
+      <p class="mt-4 text-red-600 font-semibold">{{ error }}</p>
+    {% endif %}
+  </div>
+
+  <script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileList = document.getElementById('file-list');
+    const convertBtn = document.getElementById('convert-btn');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('bg-blue-50');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('bg-blue-50');
+    });
+
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('bg-blue-50');
+      fileInput.files = e.dataTransfer.files;
+      updateFileList();
+    });
+
+    fileInput.addEventListener('change', updateFileList);
+
+    function updateFileList() {
+      fileList.innerHTML = '';
+      if (fileInput.files.length > 0) {
+        convertBtn.disabled = false;
+        Array.from(fileInput.files).forEach(file => {
+          const li = document.createElement('li');
+          li.textContent = file.name;
+          fileList.appendChild(li);
+        });
+      } else {
+        convertBtn.disabled = true;
+      }
+    }
+  </script>
+</body>
+</html>
+

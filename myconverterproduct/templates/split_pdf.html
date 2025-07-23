@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Split PDF file</title>
+</head>
+<body>
+    <h1>Split PDF file</h1>
+    <h1>Upload .pdf file to split</h1>
+
+    {% if error %}
+        <p style="color:red;">Error: {{ error }}</p>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="word_file" accept=".docx" required>
+        <button type="submit">Convert</button>
+    </form>
+
+    {% if pdf_url %}
+        <p>✅ Converted! <a href="{{ pdf_url }}">Download PDF</a></p>
+    {% endif %}
+</body>
+</html>

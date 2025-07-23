@@ -1,0 +1,70 @@
+*{
+    
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body{
+    font-size: 18px;
+    background-color: rgb(243, 243, 243);
+    /* width: 100vw; */
+}
+a{
+    text-decoration: none;
+    color: #000;
+}
+.header{
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background-color: #FFFFFF;
+    width: 100%;
+    padding: 20px;
+    border-bottom: 1px solid rgba(0,0,0,0.3);
+    box-shadow: 0 2px rgba(0,0,0,0.3);
+}
+.brand{
+    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+
+}
+.header nav{
+    display: flex;
+    justify-content: space-between;
+}
+.header ul{
+    display: flex;
+    gap: 20px;
+}
+.header li{
+    list-style: none;
+    font-weight: 600;
+    font-size: 16px;
+}
+.header a{
+    color: #000;
+}
+li a:hover{
+    cursor: pointer;
+    color: red;
+    transition: 0.1s;
+}
+.indexpagecontainer{
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(300px,300px));
+    padding: 20px;
+    max-width: 1255px;
+    gap: 5px;
+    margin: 50px auto;
+    
+}
+.indexgriditem{
+    width: 100%;
+    border: 1px solid rgba(0,0,0,0.3);
+    padding: 50px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;  
+    border: none;
+    border-radius: 5px;
+    background-color: #FFFFFF;
+}

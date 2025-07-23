@@ -1,0 +1,36 @@
+{% extends 'navbar.html' %}
+ 
+{% block content %}
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    
+    <main>
+
+        <div class="indexpagecontainer">
+            
+            <a href="{% url 'merge_pdf' %}"><div class="indexgriditem">Merge PDF</div></a>
+            <a href="{% url 'split_pdf' %}"><div class="indexgriditem">Split PDF</div></a>
+            <a href="{% url 'pdf_to_word' %}"><div class="indexgriditem">PDF to Word</div></a>
+            <a href="{% url 'compress_pdf' %}"><div class="indexgriditem">Compress PDF</div></a>
+            <a href="{% url 'word_to_pdf' %}"><div class="indexgriditem">Word to PDF</div></a>
+            <a href="{% url 'compress_word' %}"><div class="indexgriditem">Compress word</div></a>
+            
+        </div>
+
+    </main>
+
+    
+    
+</body>
+</html>
+
+{% endblock %}

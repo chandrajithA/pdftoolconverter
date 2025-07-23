@@ -1,0 +1,327 @@
+{% extends 'navbar.html' %}
+ 
+{% block content %}
+
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Merge PDFs</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <style>
+    .main-container{
+        padding: 50px 0px;
+        text-align: center;
+    }
+    .file-preview { 
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width:1265px;
+        gap: 5px; 
+        margin: 50px auto; 
+        padding: 20px;
+    }
+    .file-item {
+        max-width: 200px;
+        min-width: 200px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        background: #f9f9f9;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+        cursor: move;
+    }
+    .file-item.dragging { 
+        opacity: 0.5; 
+    }
+    .singlefilename{
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: inline-block;
+        vertical-align: middle;
+        max-width: 100%;
+        font-size: 14px;
+    }
+    .thumbcanvas {
+        width: 120px;
+        height: auto;
+        border: 1px solid #ddd;
+    }
+    .file-upload-btn {
+        display: inline-block;
+        padding: 20px 50px;
+        background-color: red;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .file-upload-btn:hover {
+        background-color: red;
+    }
+  </style>
+</head>
+<body>
+    <header>
+
+    </header>
+    <main class="main">
+        <div class="main-container">
+            <h1>Merge PDF files</h1>
+            <h2>Combine PDFs in the order you want with the easiest PDF merger available.</h2>
+            <form id="pdfForm" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="file" class="fileinputbtn" id="pdfInput" name="pdfs" accept="application/pdf" multiple required hidden>
+                <label for="pdfInput" class="file-upload-btn">Select PDF files</label>
+                <p class='dropnotice'>or drop PDFs here</p>
+                <div class="file-preview" id="previewList"></div>
+                <button type="submit" id="mergePdfBtn">Merge PDF</button>
+            </form>
+        </div>
+        <progress id="progressBar" value="0" max="100" style="width: 100%; display: none;"></progress>
+        <div id="statusText" style="font-size: 0.9em; margin-top: 5px;"></div>
+        <!-- <div id="uploadProgress" style="width:100%; background:#eee; height:20px; margin-top:10px;">
+            <div id="uploadBar" style="height:100%; background:green; width:0%;"></div>
+        </div>
+        <p id="uploadStatus"></p>
+
+        <div id="mergeStatus" style="margin-top:10px; display:none;">Merging PDFs...</div>
+
+        <div id="downloadProgress" style="width:100%; background:#eee; height:20px; margin-top:10px;">
+            <div id="downloadBar" style="height:100%; background:blue; width:0%;"></div>
+        </div>
+        <p id="downloadStatus"></p> -->
+    </main>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    const input = document.getElementById('pdfInput');
+    const preview = document.getElementById('previewList');
+    const mergebtn = document.getElementById('mergePdfBtn');
+    let filesArray = [];
+
+    input.addEventListener('change', (e) => {
+        filesArray = Array.from(e.target.files);
+        updatePreview();
+    });
+
+    function updatePreview() {
+        preview.innerHTML = '';
+        filesArray.forEach((file, index) => {
+            const fileReader = new FileReader();
+            const div = document.createElement('div');
+            div.className = 'file-item';
+            div.draggable = true;
+
+            const canvas = document.createElement('canvas');
+            canvas.className = 'thumbcanvas';
+
+            const name = document.createElement('span');
+            name.textContent = `${index+1}.${file.name}`;
+            div.dataset.filename =  file.name;
+            name.className = 'singlefilename';
+
+            div.appendChild(canvas);
+            div.appendChild(name);
+            preview.appendChild(div);
+
+            fileReader.onload = function() {
+                const typedarray = new Uint8Array(this.result);
+                pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+                    pdf.getPage(1).then(page => {
+                        const viewport = page.getViewport({ scale: 0.5 });
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport });
+                    });
+                });
+            };
+            fileReader.readAsArrayBuffer(file);
+
+            div.addEventListener('dragstart', () => div.classList.add('dragging'));
+
+            div.addEventListener('dragend', () => {
+                div.classList.remove('dragging');
+                const newOrder = Array.from(preview.children).map(d => d.dataset.filename);
+                filesArray = newOrder.map(name => filesArray.find(f => f.name === name));
+                // updatePreview();
+            });
+
+        });
+
+    }
+
+    preview.addEventListener('dragover', e => {
+        e.preventDefault();
+        const dragging = document.querySelector('.dragging');
+        if (!dragging) return;
+
+        const afterEl = getDragAfterElement(preview, e.clientX, e.clientY);
+        if (afterEl == null) {
+            preview.appendChild(dragging);
+        } else {
+            preview.insertBefore(dragging, afterEl);
+        }
+    });
+
+    function getDragAfterElement(container, x, y) {
+        const items = [...container.querySelectorAll('.file-item:not(.dragging)')];
+
+        return items.find(item => {
+            const box = item.getBoundingClientRect();
+            return (
+                y >= box.top &&
+                y <= box.bottom &&
+                x <= box.left + box.width / 2
+            );
+        });
+    }
+
+    document.getElementById('pdfForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData();
+        filesArray.forEach(file => formData.append('pdfs', file));
+        uploadWithFetch(formData);
+        // const xhr = new XMLHttpRequest();
+
+        // // Track upload progress
+        // xhr.upload.addEventListener('progress', function(e) {
+        //     if (e.lengthComputable) {
+        //         const percent = (e.loaded / e.total) * 100;
+        //         document.getElementById('uploadBar').style.width = percent + '%';
+        //         document.getElementById('uploadStatus').textContent = `Uploading: ${percent.toFixed(1)}%`;
+        //     }
+        // });
+
+        // // Track download progress (after merging)
+        // xhr.addEventListener('progress', function(e) {
+        //     if (e.lengthComputable) {
+        //         const percent = (e.loaded / e.total) * 100;
+        //         document.getElementById('downloadBar').style.width = percent + '%';
+        //         document.getElementById('downloadStatus').textContent = `Downloading: ${percent.toFixed(1)}%`;
+        //     }
+        // });
+
+        // // Merging started
+        // xhr.onloadstart = function() {
+        //     document.getElementById('mergeStatus').style.display = 'block';
+        //     document.getElementById('mergeStatus').textContent = 'Merging PDFs...';
+        // };
+
+        // // When complete, download blob
+        // xhr.onload = function() {
+        //     if (xhr.status === 200) {
+        //         const blob = xhr.response;
+        //         const url = window.URL.createObjectURL(blob);
+        //         const a = document.createElement('a');
+        //         a.href = url;
+        //         a.download = 'merged.pdf';
+        //         a.click();
+
+        //         document.getElementById('uploadStatus').textContent = 'Upload complete!';
+        //         document.getElementById('mergeStatus').textContent = 'Merge complete!';
+        //         document.getElementById('downloadStatus').textContent = 'Download complete!';
+        //     } else {
+        //         alert('Failed to merge PDFs.');
+        //     }
+        // };
+
+        // xhr.open('POST', '{% url "merge_pdf" %}');
+        // xhr.responseType = 'blob'; // because we're downloading PDF
+        // const csrftoken = getCookie('csrftoken');
+        // xhr.setRequestHeader('X-CSRFToken', csrftoken);
+        // xhr.send(formData);
+
+        fetch('{% url "merge_pdf" %}', {
+            method: 'POST',
+            body: formData,
+        }).then(response => {
+            if (response.ok) return response.blob();
+            else throw new Error("Failed to merge");
+        }).then(blob => {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = "merged.pdf";
+            link.click();
+        }).catch(err => alert("Error: " + err.message));
+
+        
+    });
+
+    // function getCookie(name) {
+    //     let cookieValue = null;
+    //     if (document.cookie && document.cookie !== '') {
+    //         const cookies = document.cookie.split(';');
+    //         for (let i = 0; i < cookies.length; i++) {
+    //             const cookie = cookies[i].trim();
+    //             // Does this cookie string begin with the name we want?
+    //             if (cookie.substring(0, name.length + 1) === (name + '=')) {
+    //                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+    //                 break;
+    //             }
+    //         }
+    //     }
+    //     return cookieValue;
+    // }
+
+    function uploadWithFetch(formData) {
+    const progressBar = document.getElementById("progressBar");
+    const statusText = document.getElementById("statusText");
+
+    // Show progress bar and reset
+    progressBar.style.display = "block";
+    progressBar.value = 0;
+    statusText.textContent = "Uploading…";
+
+    // Simulate upload progress (since fetch doesn't support upload progress natively)
+    let simulatedProgress = 0;
+    const simulateUpload = setInterval(() => {
+        simulatedProgress += 5;
+        if (simulatedProgress <= 90) {
+            progressBar.value = simulatedProgress;
+        }
+    }, 100); // progress every 100ms
+
+    fetch("{% url 'merge_pdf' %}", {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => {
+        clearInterval(simulateUpload);
+        progressBar.removeAttribute('value'); // switch to indeterminate
+        statusText.textContent = "Merging PDF…";
+
+        if (response.ok) {
+            return response.blob();
+        } else {
+            throw new Error("Failed to merge PDF");
+        }
+    })
+    .then(blob => {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = "merged.pdf";
+        link.click();
+
+        progressBar.style.display = "none";
+        statusText.textContent = "Download complete!";
+    })
+    .catch(err => {
+        clearInterval(simulateUpload);
+        progressBar.style.display = "none";
+        statusText.textContent = "Error: " + err.message;
+    });
+}
+
+
+
+
+  </script>
+
+</body>
+</html>
+
+{% endblock %}

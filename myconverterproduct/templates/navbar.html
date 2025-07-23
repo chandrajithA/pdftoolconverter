@@ -1,0 +1,43 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header class="header">
+
+        <nav>
+            <a class="brand" href="{% url 'startingpage' %}" title="iLovePDF"><p>Magic PDF</p></a>            
+            <div class="menu">
+                <ul>
+                    <li><a href="{% url 'merge_pdf' %}">Merge PDF</a></li>
+                    <li><a href="{% url 'split_pdf' %}">Split PDF</a></li>
+                    <li><a href="{% url 'compress_pdf' %}">Compress PDF</a></li>
+                    <li><a href="{% url 'compress_word' %}">Compress Word</a></li>
+                    <li><a href="{% url 'word_to_pdf' %}">Word to PDF</a></li>
+                    <li><a href="{% url 'pdf_to_word' %}">PDF to Word</a></li>
+                </ul>
+            </div>
+        </nav>
+
+    </header>
+    
+    <main>
+
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+
+    </main>
+
+    <footer>
+
+    </footer>
+    
+</body>
+</html>
