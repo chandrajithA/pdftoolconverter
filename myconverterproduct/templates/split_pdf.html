@@ -1,24 +1,143 @@
+{% extends 'navbar.html' %}
+ 
+{% block content %}
+
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Split PDF file</title>
+  <title>Merge PDFs</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <style>
+    
+  </style>
 </head>
 <body>
-    <h1>Split PDF file</h1>
-    <h1>Upload .pdf file to split</h1>
+    <header>
 
-    {% if error %}
-        <p style="color:red;">Error: {{ error }}</p>
-    {% endif %}
+    </header>
+    <main class="main">
+        <div class="main-container">
+            <h1>Split PDF files</h1>
+            <h2>Separate one page or a whole set for easy conversion into independent PDF files.</h2>
+            <form id="pdfForm" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="file" class="fileinputbtn" id="pdfInput" name="pdfs" accept="application/pdf" multiple required hidden>
+                <label for="pdfInput" class="file-upload-btn">Select PDF files</label>
+                <p class='dropnotice'>or drop PDFs here</p>
+                <label>Split by:</label>
+                <select name="split_by" required>
+                    <option value="pages">Pages</option>
+                    <option value="size">File Size (MB)</option>
+                </select><br>
 
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="file" name="word_file" accept=".docx" required>
-        <button type="submit">Convert</button>
-    </form>
+                <label>Value:</label>
+                <input type="number" name="value" required><br>
 
-    {% if pdf_url %}
-        <p>✅ Converted! <a href="{{ pdf_url }}">Download PDF</a></p>
-    {% endif %}
+                <div class="file-preview" id="previewList"></div>
+                <button type="submit" id="splitPdfBtn" class="submitbtn">Split PDF</button>
+            </form>
+        </div>
+        <progress id="progressBar" value="0" max="100" style="width: 100%; display: none;"></progress>
+        <div id="statusText" style="font-size: 0.9em; margin-top: 5px;"></div>
+        <!-- <div id="uploadProgress" style="width:100%; background:#eee; height:20px; margin-top:10px;">
+            <div id="uploadBar" style="height:100%; background:green; width:0%;"></div>
+        </div>
+        <p id="uploadStatus"></p>
+
+        <div id="mergeStatus" style="margin-top:10px; display:none;">Merging PDFs...</div>
+
+        <div id="downloadProgress" style="width:100%; background:#eee; height:20px; margin-top:10px;">
+            <div id="downloadBar" style="height:100%; background:blue; width:0%;"></div>
+        </div>
+        <p id="downloadStatus"></p> -->
+    </main>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    const input = document.getElementById('pdfInput');
+    const preview = document.getElementById('previewList');
+    const splitbtn = document.getElementById('splitPdfBtn');
+    let filesArray = [];
+
+    input.addEventListener('change', (e) => {
+        filesArray = Array.from(e.target.files);
+        updatePreview();
+    });
+
+    function updatePreview() {
+        preview.innerHTML = '';
+        filesArray.forEach((file, index) => {
+            const fileReader = new FileReader();
+            const div = document.createElement('div');
+            div.className = 'file-item';
+            div.draggable = true;
+
+            const canvas = document.createElement('canvas');
+            canvas.className = 'thumbcanvas';
+
+            const name = document.createElement('span');
+            name.textContent = `${index+1}.${file.name}`;
+            div.dataset.filename =  file.name;
+            name.className = 'singlefilename';
+
+            div.appendChild(canvas);
+            div.appendChild(name);
+            preview.appendChild(div);
+
+            fileReader.onload = function() {
+                const typedarray = new Uint8Array(this.result);
+                pdfjsLib.getDocument(typedarray).promise.then(pdf => {
+                    pdf.getPage(1).then(page => {
+                        const viewport = page.getViewport({ scale: 0.5 });
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport });
+                    });
+                });
+            };
+            fileReader.readAsArrayBuffer(file);
+
+            div.addEventListener('dragstart', () => div.classList.add('dragging'));
+
+            div.addEventListener('dragend', () => {
+                div.classList.remove('dragging');
+                const newOrder = Array.from(preview.children).map(d => d.dataset.filename);
+                filesArray = newOrder.map(name => filesArray.find(f => f.name === name));
+                // updatePreview();
+            });
+
+        });
+
+    }
+
+    preview.addEventListener('dragover', e => {
+        e.preventDefault();
+        const dragging = document.querySelector('.dragging');
+        if (!dragging) return;
+
+        const afterEl = getDragAfterElement(preview, e.clientX, e.clientY);
+        if (afterEl == null) {
+            preview.appendChild(dragging);
+        } else {
+            preview.insertBefore(dragging, afterEl);
+        }
+    });
+
+    function getDragAfterElement(container, x, y) {
+        const items = [...container.querySelectorAll('.file-item:not(.dragging)')];
+
+        return items.find(item => {
+            const box = item.getBoundingClientRect();
+            return (
+                y >= box.top &&
+                y <= box.bottom &&
+                x <= box.left + box.width / 2
+            );
+        });
+    }
+  </script>
 </body>
 </html>
+
+{% endblock %}

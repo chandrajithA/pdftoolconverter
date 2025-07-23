@@ -45,7 +45,7 @@ a{
 }
 li a:hover{
     cursor: pointer;
-    color: red;
+    color: purple;
     transition: 0.1s;
 }
 .indexpagecontainer{
@@ -68,3 +68,64 @@ li a:hover{
     border-radius: 5px;
     background-color: #FFFFFF;
 }
+.main-container{
+        padding: 50px 0px;
+        text-align: center;
+    }
+    .file-preview { 
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width:1265px;
+        gap: 5px; 
+        margin: 50px auto; 
+        padding: 20px;
+    }
+    .file-item {
+        max-width: 200px;
+        min-width: 200px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        background: #f9f9f9;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+        cursor: move;
+    }
+    .file-item.dragging { 
+        opacity: 0.5; 
+    }
+    .singlefilename{
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: inline-block;
+        vertical-align: middle;
+        max-width: 100%;
+        font-size: 14px;
+    }
+    .thumbcanvas {
+        width: 120px;
+        height: auto;
+        border: 1px solid #ddd;
+    }
+    .file-upload-btn {
+        display: inline-block;
+        padding: 20px 50px;
+        background-color: purple;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .file-upload-btn:hover {
+        background-color: purple;
+    }
+    .submitbtn{
+        display: inline-block;
+        padding: 20px 50px;
+        background-color: purple;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+    }
