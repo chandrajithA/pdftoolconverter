@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure--_0p20pz2!$rugl3=s@y6e=q)il!hz%mludr%%egb)1_ts@i7#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['pdftoolconverter.onrender.com']
 
 
 # Application definition
